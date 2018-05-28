@@ -10,13 +10,13 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from networks import define_G, define_D, GANLoss, print_network
 from data import get_training_set, get_test_set
-from shared import Meter
+from shared import Meter, checksum
 import torch.backends.cudnn as cudnn
 import datetime
 
 # Training settings
 parser = argparse.ArgumentParser(description='pix2pix-PyTorch-implementation')
-parser.add_argument('--date', help='facades', default = datetime.datetime.now().strftime('%Y%m%d%H%M'))
+parser.add_argument('--date', help='facades', default = checksum())
 parser.add_argument('--batchSize', type=int, default=1, help='training batch size')
 parser.add_argument('--testBatchSize', type=int, default=1, help='testing batch size')
 parser.add_argument('--nEpochs', type=int, default=200, help='number of epochs to train for')

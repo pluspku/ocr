@@ -10,3 +10,9 @@ class Meter:
     def __str__(self):
         return '%.4f' % np.nanmean(self.data)
 
+
+def checksum():
+    import git
+    repo = git.Repo()
+    assert not repo.is_dirty()
+    return repo.head.commit.hexsha[:8]
