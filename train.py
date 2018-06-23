@@ -134,8 +134,8 @@ def train(epoch):
 
         optimizerG.step()
 
-        meter_D.update(loss_d.data[0])
-        meter_G.update(loss_g.data[0])
+        meter_D.update(loss_d.item())
+        meter_G.update(loss_g.item())
 
         print("===> Epoch[{}]({}/{}): Loss_D: {} Loss_G: {}\r".format(
             epoch, iteration, len(training_data_loader), meter_D, meter_G), end = '')
@@ -143,16 +143,17 @@ def train(epoch):
 
 def test():
     avg_psnr = 0
-    for batch in testing_data_loader:
-        input, target = Variable(batch[0], volatile=True), Variable(batch[1], volatile=True)
-        if opt.cuda:
-            input = input.cuda()
-            target = target.cuda()
+    with torch.no_grad():
+        for batch in testing_data_loader:
+            input, target = Variable(batch[0]), Variable(batch[1])
+            if opt.cuda:
+                input = input.cuda()
+                target = target.cuda()
 
-        prediction = netG(input)
-        mse = criterionMSE(prediction, target)
-        psnr = 10 * log10(1 / mse.data[0])
-        avg_psnr += psnr
+            prediction = netG(input)
+            mse = criterionMSE(prediction, target)
+            psnr = 10 * log10(1 / mse.item())
+            avg_psnr += psnr
     print("\n===> Avg. PSNR: {:.4f} dB".format(avg_psnr / len(testing_data_loader)))
 
 
