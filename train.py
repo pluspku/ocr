@@ -16,7 +16,7 @@ import datetime
 
 # Training settings
 import settings as opt
-
+print('===> Checksum = %s' % opt.date)
 
 if opt.cuda and not torch.cuda.is_available():
     raise Exception("No GPU found, please run without --cuda")

@@ -15,4 +15,4 @@ def checksum():
     import git
     repo = git.Repo()
     assert not repo.is_dirty()
-    return repo.head.commit.hexsha[:8]
+    return repo.head.commit.hexsha[:7]

@@ -23,7 +23,7 @@ from shared import checksum
 
 cuda = True
 date = checksum()
-seed = 1
+seed = 123
 threads = 4
 
 # data params
@@ -31,7 +31,7 @@ input_nc = 1
 output_nc = 1
 
 # structure params
-batch_mode = 'instance'
+batch_mode = 'batch'
 G_blocks = 9
 D_layers = 3
 ngf = 64
