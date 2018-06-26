@@ -15,25 +15,8 @@ import torch.backends.cudnn as cudnn
 import datetime
 
 # Training settings
-parser = argparse.ArgumentParser(description='pix2pix-PyTorch-implementation')
-parser.add_argument('--date', help='facades', default = checksum())
-parser.add_argument('--batchSize', type=int, default=1, help='training batch size')
-parser.add_argument('--testBatchSize', type=int, default=1, help='testing batch size')
-parser.add_argument('--nEpochs', type=int, default=200, help='number of epochs to train for')
-parser.add_argument('--input_nc', type=int, default=1, help='input image channels')
-parser.add_argument('--output_nc', type=int, default=1, help='output image channels')
-parser.add_argument('--ngf', type=int, default=64, help='generator filters in first conv layer')
-parser.add_argument('--ndf', type=int, default=64, help='discriminator filters in first conv layer')
-parser.add_argument('--glr', type=float, default=0.002, help='Generator learning Rate. Default=0.002')
-parser.add_argument('--dlr', type=float, default=0.002, help='Discriminator learning Rate. Default=0.002')
-parser.add_argument('--beta1', type=float, default=0.5, help='beta1 for adam. default=0.5')
-parser.add_argument('--cuda', action='store_true', help='use cuda?', default = True)
-parser.add_argument('--threads', type=int, default=4, help='number of threads for data loader to use')
-parser.add_argument('--seed', type=int, default=123, help='random seed to use. Default=123')
-parser.add_argument('--lamb', type=int, default=10, help='weight on L1 term in objective')
-opt = parser.parse_args()
+import settings as opt
 
-print(opt)
 
 if opt.cuda and not torch.cuda.is_available():
     raise Exception("No GPU found, please run without --cuda")
@@ -51,8 +34,8 @@ training_data_loader = DataLoader(dataset=train_set, num_workers=opt.threads, ba
 testing_data_loader = DataLoader(dataset=test_set, num_workers=opt.threads, batch_size=opt.testBatchSize, shuffle=False)
 
 print('===> Building model')
-netG = define_G(opt.input_nc, opt.output_nc, opt.ngf, 'batch', False, [0])
-netD = define_D(opt.input_nc + opt.output_nc, opt.ndf, 'batch', False, [0])
+netG = define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.batch_mode, False, [0])
+netD = define_D(opt.input_nc + opt.output_nc, opt.ndf, opt.batch_mode, False, [0])
 
 criterionGAN = GANLoss()
 criterionL1 = nn.L1Loss()

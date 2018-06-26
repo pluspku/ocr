@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import numpy as np
-
+import settings as opt
 
 def weights_init(m):
     classname = m.__class__.__name__
@@ -31,7 +31,7 @@ def define_G(input_nc, output_nc, ngf, norm='batch', use_dropout=False, gpu_ids=
     if use_gpu:
         assert(torch.cuda.is_available())
 
-    netG = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=9, gpu_ids=gpu_ids)
+    netG = ResnetGenerator(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout, n_blocks=opt.G_blocks, gpu_ids=gpu_ids)
 
     if len(gpu_ids) > 0:
         netG.cuda(gpu_ids[0])
@@ -47,7 +47,7 @@ def define_D(input_nc, ndf, norm='batch', use_sigmoid=False, gpu_ids=[]):
     if use_gpu:
         assert(torch.cuda.is_available())
 
-    netD = NLayerDiscriminator(input_nc, ndf, n_layers=3, norm_layer=norm_layer, use_sigmoid=use_sigmoid, gpu_ids=gpu_ids)
+    netD = NLayerDiscriminator(input_nc, ndf, n_layers = opt.D_layers, norm_layer=norm_layer, use_sigmoid=use_sigmoid, gpu_ids=gpu_ids)
 
     if use_gpu:
         netD.cuda(gpu_ids[0])
