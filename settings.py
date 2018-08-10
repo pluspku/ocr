@@ -38,7 +38,7 @@ ngf = 64
 ndf = 64
 
 # train params
-batchSize = 1
+batchSize = 4
 testBatchSize = 1
 nEpochs = 20000
 glr = 0.002

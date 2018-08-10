@@ -37,6 +37,8 @@ class WordDataset(data.Dataset):
         E = min(W, H)
         img1 = ImageOps.expand(img1, border = E).crop((ex - E // 2 + E, ey - E // 2 + E, ex + E // 2 + E, ey + E //2 + E)).resize((W, H), Image.ANTIALIAS)
         img2 = self.get_image(index)
+        img2 = img2.rotate(5 * np.random.uniform(-1, 1))
+        img2 = img2.resize((img2.size[0] + np.random.randint(-2, 2) * 3, img2.size[1] + np.random.randint(-2, 2)), Image.ANTIALIAS)
         ax, ay = center(img2)
         E = img2.size[1] + margin
         img3 = ImageOps.expand(img2, border = E).crop((ax - E // 2 + E, ay - E //2 + E, ax + E // 2 + E, ay + E //2 + E)).resize((W, H), Image.ANTIALIAS)

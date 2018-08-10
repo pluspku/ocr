@@ -7,7 +7,7 @@ db = '/mnt/tmp/ocr/sqlite.db'
 
 with sqlite3.Connection(db) as conn:
     cur = conn.cursor()
-    rows = cur.execute("SELECT id, left, top, right, bottom, label FROM labels").fetchall()
+    rows = cur.execute("SELECT id, left, top, right, bottom, label FROM labels order by id").fetchall()
 
 cutoff = int(len(rows) * 0.9)
 
