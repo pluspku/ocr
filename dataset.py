@@ -50,7 +50,7 @@ class WordDataset(data.Dataset):
         pid, left, upper, right, lower, word = self.dictionary[index]
         img1 = get_ideal_image(word)
         img2 = self.get_image(index)
-        img2 = img2.rotate(5 * np.random.uniform(-1, 1))
+        img2 = img2.rotate(2 * np.random.uniform(-1, 1))
         img2 = img2.resize((img2.size[0] + np.random.randint(-2, 2) * 3, img2.size[1] + np.random.randint(-2, 2)), Image.ANTIALIAS)
         img3 = normalize_raw_image(img2)
         #bleft = min(a for a in np.argmin(np.cumsum(1 - np.array(img2) / 255, 1) == 0, 1) if a > 0)
