@@ -94,7 +94,10 @@ def train(epoch):
 
         # train with random wrong word
         from dataset import random_word
-        other_ab = torch.cat((real_a, random_word(opt.batchSize).cuda()), 1)
+        others = random_word(opt.batchSize)
+        if opt.cuda:
+            others = other.cuda()
+        other_ab = torch.cat((real_a, others), 1)
         pred_other = netD.forward(other_ab)
         loss_d_other = criterionGAN(pred_other, False)
         
