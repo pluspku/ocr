@@ -15,6 +15,24 @@ font_color = (255,)
 margin = 10
 unicode_font = ImageFont.truetype("/usr/share/fonts/opentype/noto/NotoSerifCJK.ttc", font_size)
 IMAGE_ROOT = '/home/wshi/git/misc/ocr/label/data/02111843.cn_tif'
+
+def get_ideal_image(word):
+    img1 = Image.new('L', (80, 80))
+    d = ImageDraw.Draw(img1)
+    w, h = unicode_font.getsize(word)
+    d.text(((W-w)/2,(H-h)/2 - 14), word, font = unicode_font, fill = font_color)
+    ex, ey = center(img1)
+    E = min(W, H)
+    img1 = ImageOps.expand(img1, border = E).crop((ex - E // 2 + E, ey - E // 2 + E, ex + E // 2 + E, ey + E //2 + E)).resize((W, H), Image.ANTIALIAS)
+    return img1
+
+def normalize_raw_image(img):
+    ax, ay = center(img)
+    E = img.size[1] + margin
+    img3 = ImageOps.expand(img, border = E).crop((ax - E // 2 + E, ay - E //2 + E, ax + E // 2 + E, ay + E //2 + E)).resize((W, H), Image.ANTIALIAS)
+    return img3
+ 
+
 class WordDataset(data.Dataset):
     def __init__(self, dictionary):
         super().__init__()
@@ -29,19 +47,11 @@ class WordDataset(data.Dataset):
 
     def __getitem__(self, index):
         pid, left, upper, right, lower, word = self.dictionary[index]
-        img1 = Image.new('L', (80, 80))
-        d = ImageDraw.Draw(img1)
-        w, h = unicode_font.getsize(word)
-        d.text(((W-w)/2,(H-h)/2 - 14), word, font = unicode_font, fill = font_color)
-        ex, ey = center(img1)
-        E = min(W, H)
-        img1 = ImageOps.expand(img1, border = E).crop((ex - E // 2 + E, ey - E // 2 + E, ex + E // 2 + E, ey + E //2 + E)).resize((W, H), Image.ANTIALIAS)
+        img1 = get_ideal_image(word)
         img2 = self.get_image(index)
         img2 = img2.rotate(5 * np.random.uniform(-1, 1))
         img2 = img2.resize((img2.size[0] + np.random.randint(-2, 2) * 3, img2.size[1] + np.random.randint(-2, 2)), Image.ANTIALIAS)
-        ax, ay = center(img2)
-        E = img2.size[1] + margin
-        img3 = ImageOps.expand(img2, border = E).crop((ax - E // 2 + E, ay - E //2 + E, ax + E // 2 + E, ay + E //2 + E)).resize((W, H), Image.ANTIALIAS)
+        img3 = normalize_raw_image(img2)
         #bleft = min(a for a in np.argmin(np.cumsum(1 - np.array(img2) / 255, 1) == 0, 1) if a > 0)
         #bright = np.array(img2).shape[1] - min(a for a in np.argmin(np.cumsum(1 - np.array(img2)[:, ::-1] / 255, 1) == 0, 1) if a > 0)
         #img3 = img2.crop((max(bleft - margin, 0), 0, min(bright + margin, img2.size[0]), img2.size[1])).resize((W, H), Image.ANTIALIAS)
