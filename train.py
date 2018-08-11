@@ -91,9 +91,15 @@ def train(epoch):
         real_ab = torch.cat((real_a, real_b), 1)
         pred_real = netD.forward(real_ab)
         loss_d_real = criterionGAN(pred_real, True)
+
+        # train with random wrong word
+        from dataset import random_word
+        other_ab = torch.cat((real_a, random_word(opt.batchSize).cuda()), 1)
+        pred_other = netD.forward(other_ab)
+        loss_d_other = criterionGAN(pred_other, False)
         
         # Combined loss
-        loss_d = (loss_d_fake + loss_d_real) * 0.5
+        loss_d = (loss_d_fake + loss_d_real + loss_d_other) * 0.5
 
         loss_d.backward()
        

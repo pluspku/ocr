@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import torch
 import torch.utils.data as data
 import torchvision.transforms as transforms
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
@@ -107,6 +108,12 @@ class ClearDataset(data.Dataset):
     def __len__(self):
         return len(self.dictionary)
 
+with open('word.txt') as f:
+    dictionary = [get_ideal_image(w) for w in f.read().strip()]
+
+def random_word(batch_size): 
+    words = [dictionary[i] for i in np.random.choice(len(dictionary), batch_size)] 
+    return torch.cat([transforms.ToTensor()(w) for w in words], 0)[:, None]
 
 if __name__ == '__main__':
     ds = WordDataset('word.txt')
