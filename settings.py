@@ -33,7 +33,7 @@ output_nc = 1
 # structure params
 batch_mode = 'batch'
 G_blocks = 9
-D_layers = 3
+D_layers = 5
 ngf = 64
 ndf = 64
 
@@ -41,7 +41,7 @@ ndf = 64
 batchSize = 4
 testBatchSize = 1
 nEpochs = 20000
-glr = 0.002
-dlr = 0.002
+glr = 0.001
+dlr = 0.001
 beta1 = 0.5
 lamb = 10
