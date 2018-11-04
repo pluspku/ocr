@@ -96,13 +96,13 @@ def train(epoch):
         from dataset import random_word
         others = random_word(opt.batchSize)
         if opt.cuda:
-            others = other.cuda()
+            others = others.cuda()
         other_ab = torch.cat((real_a, others), 1)
         pred_other = netD.forward(other_ab)
         loss_d_other = criterionGAN(pred_other, False)
         
         # Combined loss
-        loss_d = (loss_d_fake + loss_d_real + loss_d_other) * 0.5
+        loss_d = (loss_d_fake + loss_d_real + loss_d_other * 0.1)
 
         loss_d.backward()
        
