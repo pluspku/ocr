@@ -37,6 +37,9 @@ D_layers = 5
 ngf = 64
 ndf = 64
 
+# loss params
+other_loss_rate = 0.2
+
 # train params
 batchSize = 4
 testBatchSize = 1
@@ -45,3 +48,6 @@ glr = 0.001
 dlr = 0.001
 beta1 = 0.5
 lamb = 10
+
+
+

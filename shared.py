@@ -20,3 +20,12 @@ def checksum():
     if not allow_dirty:
         assert not repo.is_dirty()
     return repo.head.commit.hexsha[:7]
+
+control_key = 'train_mode'
+import redis
+rconn = redis.Redis()
+def train_mode():
+    return rconn.get(control_key).decode("utf8") or "A"
+def set_mode(mode):
+    rconn.set(control_key, mode)
+    return rconn.get(control_key).decode("utf8")

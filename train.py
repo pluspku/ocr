@@ -10,7 +10,7 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from networks import define_G, define_D, GANLoss, print_network
 from data import get_training_set, get_test_set
-from shared import Meter, checksum
+from shared import Meter, checksum, train_mode
 import torch.backends.cudnn as cudnn
 import datetime
 
@@ -70,6 +70,7 @@ def train(epoch):
     meter_D = Meter(1000)
     meter_G = Meter(1000)
     for iteration, batch in enumerate(training_data_loader, 1):
+        mode = train_mode()
         # forward
         real_a_cpu, real_b_cpu = batch[0], batch[1]
         real_a.data.resize_(real_a_cpu.size()).copy_(real_a_cpu)
@@ -93,7 +94,7 @@ def train(epoch):
         loss_d_real = criterionGAN(pred_real, True)
 
         # train with random wrong word
-        from .dataset import random_word
+        from dataset import random_word
         others = random_word(opt.batchSize)
         if opt.cuda:
             others = others.cuda()
@@ -102,11 +103,11 @@ def train(epoch):
         loss_d_other = criterionGAN(pred_other, False)
         
         # Combined loss
-        loss_d = (loss_d_fake + loss_d_real + loss_d_other * 0.1)
+        loss_d = (loss_d_fake + loss_d_real + loss_d_other * opt.other_loss_rate)
 
-        loss_d.backward()
-       
-        optimizerD.step()
+        if mode in ("A", "D"):
+            loss_d.backward()
+            optimizerD.step()
 
         ############################
         # (2) Update G network: maximize log(D(x,G(x))) + L1(y,G(x))
@@ -121,10 +122,10 @@ def train(epoch):
         loss_g_l1 = criterionL1(fake_b, real_b) * opt.lamb
         
         loss_g = loss_g_gan + loss_g_l1
-        
-        loss_g.backward()
 
-        optimizerG.step()
+        if mode in ("A", "G"):
+            loss_g.backward()
+            optimizerG.step()
 
         meter_D.update(loss_d.item())
         meter_G.update(loss_g.item())
