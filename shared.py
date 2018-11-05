@@ -1,5 +1,8 @@
 import numpy as np
 from collections import deque
+
+allow_dirty = False
+
 class Meter:
     def __init__(self, ma = 100):
         self.data = deque(maxlen = ma)
@@ -14,5 +17,6 @@ class Meter:
 def checksum():
     import git
     repo = git.Repo()
-    assert not repo.is_dirty()
+    if not allow_dirty:
+        assert not repo.is_dirty()
     return repo.head.commit.hexsha[:7]

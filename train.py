@@ -93,7 +93,7 @@ def train(epoch):
         loss_d_real = criterionGAN(pred_real, True)
 
         # train with random wrong word
-        from dataset import random_word
+        from .dataset import random_word
         others = random_word(opt.batchSize)
         if opt.cuda:
             others = others.cuda()
