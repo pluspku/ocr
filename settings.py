@@ -38,7 +38,7 @@ ngf = 64
 ndf = 64
 
 # loss params
-other_loss_rate = 0.2
+other_loss_rate = 0.5
 
 # train params
 batchSize = 4
@@ -49,5 +49,5 @@ dlr = 0.001
 beta1 = 0.5
 lamb = 10
 
-
-
+# dynamic
+GDratio = 1.0
