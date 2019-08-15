@@ -71,14 +71,15 @@ real_b = Variable(real_b)
 
 
 def train(epoch):
+    print("===> Train")
     meter_D = Meter(1000)
     meter_G = Meter(1000)
     for iteration, batch in enumerate(training_data_loader, 1):
         mode = train_mode()
         # forward
         real_a_cpu, real_b_cpu = batch[0], batch[1]
-        real_a.data.resize_(real_a_cpu.size()).copy_(real_a_cpu)
-        real_b.data.resize_(real_b_cpu.size()).copy_(real_b_cpu)
+        real_a.resize_(real_a_cpu.size()).copy_(real_a_cpu)
+        real_b.resize_(real_b_cpu.size()).copy_(real_b_cpu)
         fake_b = netG(real_a)
 
         ############################
@@ -134,11 +135,12 @@ def train(epoch):
         meter_D.update(loss_d.item())
         meter_G.update(loss_g.item())
 
-        print("===> Epoch[{}]({}/{}): Loss_D: {} Loss_G: {}\r".format(
-            epoch, iteration, len(training_data_loader), meter_D, meter_G), end = '')
-        logger.log(images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': rela_b})
+        #print("===> Epoch[{}]({}/{}): Loss_D: {} Loss_G: {}\r".format(
+        #    epoch, iteration, len(training_data_loader), meter_D, meter_G), end = '')
+        logger.log(losses = {'D': loss_d, 'G': loss_g}, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b})
 
 def test():
+    print("\n===> Test")
     avg_psnr = 0
     with torch.no_grad():
         for batch in testing_data_loader:
@@ -149,9 +151,9 @@ def test():
 
             prediction = netG(input)
             mse = criterionMSE(prediction, target)
-            psnr = 10 * log10(1 / mse.item())
-            avg_psnr += psnr
-            logger.log(images = {'test_real_a': input, 'test_fake_b': target}, losses = {'psnr': psnr})
+            psnr = 10 * torch.log10(1 / mse)
+            avg_psnr += psnr.item()
+            logger.log(images = {'test_real_a': input, 'test_real_b': target, 'test_fake_b': prediction}, losses = {'psnr': psnr})
     psnr = avg_psnr / len(testing_data_loader)
     print("\n===> Avg. PSNR: {:.4f} dB".format(psnr))
 
