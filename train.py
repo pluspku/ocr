@@ -35,7 +35,8 @@ test_set = get_test_set()
 training_data_loader = DataLoader(dataset=train_set, num_workers=opt.threads, batch_size=opt.batchSize, shuffle=True)
 testing_data_loader = DataLoader(dataset=test_set, num_workers=opt.threads, batch_size=opt.testBatchSize, shuffle=False)
 
-logger = Logger(opt.nEpochs, len(training_data_loader))
+train_logger = Logger(opt.nEpochs, len(training_data_loader))
+test_logger = Logger(opt.nEpochs, len(testing_data_loader))
 
 print('===> Building model')
 netG = define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.batch_mode, False, [0])
@@ -137,7 +138,7 @@ def train(epoch):
 
         #print("===> Epoch[{}]({}/{}): Loss_D: {} Loss_G: {}\r".format(
         #    epoch, iteration, len(training_data_loader), meter_D, meter_G), end = '')
-        logger.log(losses = {'D': loss_d, 'G': loss_g}, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b})
+        train_logger.log(losses = {'D': loss_d, 'G': loss_g}, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b})
 
 def test():
     print("\n===> Test")
@@ -153,7 +154,7 @@ def test():
             mse = criterionMSE(prediction, target)
             psnr = 10 * torch.log10(1 / mse)
             avg_psnr += psnr.item()
-            logger.log(images = {'test_real_a': input, 'test_real_b': target, 'test_fake_b': prediction}, losses = {'psnr': psnr})
+            test_logger.log(images = {'test_real_a': input, 'test_real_b': target, 'test_fake_b': prediction}, losses = {'psnr': psnr})
     psnr = avg_psnr / len(testing_data_loader)
     print("\n===> Avg. PSNR: {:.4f} dB".format(psnr))
 
