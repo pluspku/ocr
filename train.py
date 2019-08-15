@@ -14,6 +14,8 @@ from shared import Meter, checksum, train_mode
 import torch.backends.cudnn as cudnn
 import datetime
 
+from utils import Logger
+
 # Training settings
 import settings as opt
 print('===> Checksum = %s' % opt.date)
@@ -32,6 +34,8 @@ train_set = get_training_set()
 test_set = get_test_set()
 training_data_loader = DataLoader(dataset=train_set, num_workers=opt.threads, batch_size=opt.batchSize, shuffle=True)
 testing_data_loader = DataLoader(dataset=test_set, num_workers=opt.threads, batch_size=opt.testBatchSize, shuffle=False)
+
+logger = Logger(opt.nEpochs, len(training_data_loader))
 
 print('===> Building model')
 netG = define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.batch_mode, False, [0])
@@ -132,7 +136,7 @@ def train(epoch):
 
         print("===> Epoch[{}]({}/{}): Loss_D: {} Loss_G: {}\r".format(
             epoch, iteration, len(training_data_loader), meter_D, meter_G), end = '')
-
+        logger.log(images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': rela_b})
 
 def test():
     avg_psnr = 0
@@ -147,7 +151,9 @@ def test():
             mse = criterionMSE(prediction, target)
             psnr = 10 * log10(1 / mse.item())
             avg_psnr += psnr
-    print("\n===> Avg. PSNR: {:.4f} dB".format(avg_psnr / len(testing_data_loader)))
+            logger.log(images = {'test_real_a': input, 'test_fake_b': target}, losses = {'psnr': psnr})
+    psnr = avg_psnr / len(testing_data_loader)
+    print("\n===> Avg. PSNR: {:.4f} dB".format(psnr))
 
 
 def checkpoint(epoch):
@@ -160,6 +166,14 @@ def checkpoint(epoch):
     torch.save(netG, net_g_model_out_path)
     torch.save(netD, net_d_model_out_path)
     print("Checkpoint saved to checkpoint/{}".format(opt.date))
+
+def merge_stats(*stats):
+    ret = {'losses': {}, 'images': {}}
+    for stat in stats:
+        for item in ['losses', 'images']:
+            if item in stat:
+                ret[item].update(stat[item])
+    return ret
 
 if __name__ == '__main__':
     for epoch in range(1, opt.nEpochs + 1):

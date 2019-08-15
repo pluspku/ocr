@@ -13,6 +13,9 @@ class Meter:
     def __str__(self):
         return '%.4f' % np.nanmean(self.data)
 
+    def val(self):
+        return np.nanmean(self.data)
+
 
 def checksum():
     import git
