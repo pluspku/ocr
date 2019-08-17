@@ -36,7 +36,7 @@ class ImageDataset(Dataset):
         if os.path.exists(os.path.join(root, mode, "mapping.csv")):
             self.mapping = pd.read_csv(os.path.join(root, mode, "mapping.csv"))
             self.files_A = self.mapping.src.apply(lambda x: os.path.join(root, mode, 'A', '%s.tif' % x)).tolist()
-            self.files_B = self.mapping.tgt.apply(lambda x: os.path.join(root, mode, 'A', '%s.tif' % x)).tolist()
+            self.files_B = self.mapping.tgt.apply(lambda x: os.path.join(root, mode, 'B', '%s.tif' % x)).tolist()
         else:
             raise Exception("%s does not exists" % os.path.join(root, mode, "mapping.csv"))
 
