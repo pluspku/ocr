@@ -1,21 +1,17 @@
-from dataset import WordDataset, ClearDataset
-from torch.utils.data import ConcatDataset
+from torchvision import transforms
+from datasets import ImageDataset
+import os
 
-import sqlite3
+transforms_ = [
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))
+        ]
 
-db = '/mnt/tmp/ocr/sqlite.db'
+root = "datasets/hlm2"
 
-with sqlite3.Connection(db) as conn:
-    cur = conn.cursor()
-    rows = cur.execute("SELECT id, left, top, right, bottom, label FROM labels order by id").fetchall()
-
-cutoff = int(len(rows) * 0.9)
-
-RATIO = 0.0
 def get_training_set():
-    wd = WordDataset(rows[:cutoff])
-    cd = ClearDataset()
-    return ConcatDataset([wd] + [cd] * int(len(wd) / len(cd) * RATIO))
+    return ImageDataset(root, transforms_, unaligned = False, mode = 'train')
 
 def get_test_set():
-    return WordDataset(rows[cutoff:])
+    return ImageDataset(root, transforms_, unaligned = False, mode = 'test')
+

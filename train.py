@@ -14,7 +14,7 @@ from shared import Meter, checksum, train_mode
 import torch.backends.cudnn as cudnn
 import datetime
 
-from utils import Logger
+from logger import Logger
 
 # Training settings
 import settings as opt
