@@ -10,8 +10,8 @@ transforms_ = [
 root = "datasets/hlm2"
 
 def get_training_set():
-    return ImageDataset(root, transforms_, unaligned = False, mode = 'train')
+    return ImageDataset(root, transforms_, unaligned = False, mode = 'train', limit = 6000)
 
 def get_test_set():
-    return ImageDataset(root, transforms_, unaligned = False, mode = 'test')
+    return ImageDataset(root, transforms_, unaligned = False, mode = 'test', limit = 500)
 

@@ -29,9 +29,10 @@ def get_image(path):
 
 
 class ImageDataset(Dataset):
-    def __init__(self, root, transforms_=None, unaligned=False, mode='train'):
+    def __init__(self, root, transforms_=None, unaligned=False, mode='train', limit = MAX):
         self.transform = transforms.Compose(transforms_)
         self.unaligned = unaligned
+        self.limit = limit
 
         if os.path.exists(os.path.join(root, mode, "mapping.csv")):
             self.mapping = pd.read_csv(os.path.join(root, mode, "mapping.csv"))
@@ -40,19 +41,22 @@ class ImageDataset(Dataset):
         else:
             raise Exception("%s does not exists" % os.path.join(root, mode, "mapping.csv"))
 
-    def __getitem__(self, index):
+    def reset(self):
+        self.subst = random.sample(range(len(self.mapping)), self.limit)
 
+    def __getitem__(self, index):
         if self.unaligned:
             item_A = self.transform(get_image(self.files_A[random.randint(0, len(self.files_A) - 1)]))
             item_B = self.transform(get_image(self.files_B[random.randint(0, len(self.files_B) - 1)]))
         else:
-            item_A = self.transform(get_image(self.files_A[index % len(self.files_A)]))            
-            item_B = self.transform(get_image(self.files_B[index % len(self.files_B)]))
+            j = self.subst[index]
+            item_A = self.transform(get_image(self.files_A[j]))            
+            item_B = self.transform(get_image(self.files_B[j]))
 
         return (item_A, item_B)
         #return {'A': item_A, 'B': item_B, 'index': index}
 
     def __len__(self):
-        return min(MAX, max(len(self.files_A), len(self.files_B)))
+        return min(self.limit, max(len(self.files_A), len(self.files_B)))
 
 

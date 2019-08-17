@@ -76,6 +76,8 @@ def train(epoch):
     meter_D = Meter(1000)
     meter_G = Meter(1000)
     for iteration, batch in enumerate(training_data_loader, 1):
+        train_set.reset()
+        test_set.reset()
         mode = train_mode()
         # forward
         real_a_cpu, real_b_cpu = batch[0], batch[1]
