@@ -51,3 +51,4 @@ lamb = 10
 
 # dynamic
 GDratio = 1.0
+

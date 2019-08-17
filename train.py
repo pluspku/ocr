@@ -35,8 +35,8 @@ test_set = get_test_set()
 training_data_loader = DataLoader(dataset=train_set, num_workers=opt.threads, batch_size=opt.batchSize, shuffle=True)
 testing_data_loader = DataLoader(dataset=test_set, num_workers=opt.threads, batch_size=opt.testBatchSize, shuffle=False)
 
-train_logger = Logger(opt.nEpochs, len(training_data_loader))
-test_logger = Logger(opt.nEpochs, len(testing_data_loader))
+train_logger = Logger(opt.nEpochs, len(training_data_loader), opt.date)
+test_logger = Logger(opt.nEpochs, len(testing_data_loader), opt.date)
 
 print('===> Building model')
 netG = define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.batch_mode, False, [0])
@@ -75,9 +75,8 @@ def train(epoch):
     print("===> Train")
     meter_D = Meter(1000)
     meter_G = Meter(1000)
+    train_set.reset()
     for iteration, batch in enumerate(training_data_loader, 1):
-        train_set.reset()
-        test_set.reset()
         mode = train_mode()
         # forward
         real_a_cpu, real_b_cpu = batch[0], batch[1]
@@ -144,6 +143,7 @@ def train(epoch):
 
 def test():
     print("\n===> Test")
+    test_set.reset()
     avg_psnr = 0
     with torch.no_grad():
         for batch in testing_data_loader:
