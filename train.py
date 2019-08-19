@@ -127,6 +127,9 @@ def train(epoch):
 
          # Second, G(A) = B
         loss_g_l1 = criterionL1(fake_b, real_b) * opt.lamb
+
+        # Third, E(G(A)) = E(A)
+        loss_g_density = criterionMSE(fake_b.mean((1,2,3)), real_a.mean((1,2,3)))
         
         loss_g = loss_g_gan + loss_g_l1
 
@@ -139,7 +142,15 @@ def train(epoch):
 
         #print("===> Epoch[{}]({}/{}): Loss_D: {} Loss_G: {}\r".format(
         #    epoch, iteration, len(training_data_loader), meter_D, meter_G), end = '')
-        train_logger.log(losses = {'D': loss_d, 'G': loss_g}, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b})
+        train_logger.log(losses = {
+            'D': loss_d,
+            'D_GAN': loss_d_fake + loss_d_real,
+            'D_other': loss_d_other * opt.other_loss_rate,
+            'G': loss_g,
+            'G_GAN': loss_g_gan,
+            'G_L1': loss_g_l1,
+            'G_Density': loss_g_density,
+            }, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b})
 
 def test():
     print("\n===> Test")
@@ -184,5 +195,5 @@ if __name__ == '__main__':
     for epoch in range(1, opt.nEpochs + 1):
         train(epoch)
         test()
-        if epoch % 20 == 0:
+        if epoch % 20 == 0 or (epoch < 30 and epoch % 2 == 0):
             checkpoint(epoch)
