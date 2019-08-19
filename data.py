@@ -7,7 +7,7 @@ transforms_ = [
         transforms.Normalize((0.5,), (0.5,))
         ]
 
-root = "datasets/hlm2"
+root = "datasets/rlws"
 
 def get_training_set():
     return ImageDataset(root, transforms_, unaligned = False, mode = 'train', limit = 6000)

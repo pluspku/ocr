@@ -52,8 +52,8 @@ def run(subst):
 
 if __name__ == '__main__':
     import sys
-    mode = sys.argv[1]
-    root = "datasets/hlm2/%s/A" % mode
+    ds, mode = sys.argv[1:3]
+    root = "datasets/%s/%s/A" % (ds, mode)
     files = [int(f.replace('.tif', '')) for f in os.listdir(root)]
 
     import pandas as pd
