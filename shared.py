@@ -22,7 +22,7 @@ def checksum():
     repo = git.Repo()
     if not allow_dirty:
         assert not repo.is_dirty()
-    return repo.head.commit.hexsha[:7]
+    return repo.active_branch.name + "." + repo.head.commit.hexsha[:7]
 
 control_key = 'train_mode'
 import redis
