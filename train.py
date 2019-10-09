@@ -39,28 +39,35 @@ train_logger = Logger(opt.nEpochs, len(training_data_loader), opt.date)
 test_logger = Logger(opt.nEpochs, len(testing_data_loader), opt.date)
 
 print('===> Building model')
-netG = define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.batch_mode, False, [0])
-netD = define_D(opt.input_nc + opt.output_nc, opt.ndf, opt.batch_mode, False, [0])
+netG_A2B = define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.batch_mode, False, [0])
+netD_B = define_D(opt.input_nc + opt.output_nc, opt.ndf, opt.batch_mode, False, [0])
+netG_B2A = define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.batch_mode, False, [0])
+netD_A = define_D(opt.input_nc + opt.output_nc, opt.ndf, opt.batch_mode, False, [0])
 
 criterionGAN = GANLoss()
 criterionL1 = nn.L1Loss()
 criterionMSE = nn.MSELoss()
+criterion_identity = nn.L1Loss()
+criterion_cycle = nn.L1Loss()
 
 # setup optimizer
-optimizerG = optim.Adam(netG.parameters(), lr=opt.glr, betas=(opt.beta1, 0.999))
-optimizerD = optim.Adam(netD.parameters(), lr=opt.dlr, betas=(opt.beta1, 0.999))
+import itertools
+optimizer_G = optim.Adam(
+    itertools.chain(netG_A2B.parameters(), netG_B2A.parameters()), lr=opt.glr, betas=(opt.beta1, 0.999))
+optimizerD_B = optim.Adam(netD_B.parameters(), lr=opt.dlr, betas=(opt.beta1, 0.999))
+optimizerD_A = optim.Adam(netD_B.parameters(), lr=opt.dlr, betas=(opt.beta1, 0.999))
 
 print('---------- Networks initialized -------------')
 #print_network(netG)
-#print_network(netD)
+#print_network(netD_B)
 print('-----------------------------------------------')
 
 real_a = torch.FloatTensor(opt.batchSize, opt.input_nc, 256, 256)
 real_b = torch.FloatTensor(opt.batchSize, opt.output_nc, 256, 256)
 
 if opt.cuda:
-    netD = netD.cuda()
-    netG = netG.cuda()
+    netD_B = netD_B.cuda()
+    netG_A2B = netG_A2B.cuda()
     criterionGAN = criterionGAN.cuda()
     criterionL1 = criterionL1.cuda()
     criterionMSE = criterionMSE.cuda()
@@ -73,79 +80,99 @@ real_b = Variable(real_b)
 
 def train(epoch):
     print("===> Train")
-    meter_D = Meter(1000)
-    meter_G = Meter(1000)
     train_set.reset()
     for iteration, batch in enumerate(training_data_loader, 1):
-        mode = train_mode()
         # forward
         real_a_cpu, real_b_cpu = batch[0], batch[1]
         real_a.resize_(real_a_cpu.size()).copy_(real_a_cpu)
         real_b.resize_(real_b_cpu.size()).copy_(real_b_cpu)
-        fake_b = netG(real_a)
+        fake_b = netG_A2B(real_a)
+        fake_a = netG_B2A(real_b)
 
         ############################
         # (1) Update D network: maximize log(D(x,y)) + log(1 - D(x,G(x)))
         ###########################
 
-        optimizerD.zero_grad()
+        optimizerD_B.zero_grad()
         
         # train with fake
         fake_ab = torch.cat((real_a, fake_b), 1)
-        pred_fake = netD.forward(fake_ab.detach())
+        pred_fake = netD_B.forward(fake_ab.detach())
         loss_d_fake = criterionGAN(pred_fake, False)
 
         # train with real
         real_ab = torch.cat((real_a, real_b), 1)
-        pred_real = netD.forward(real_ab)
+        pred_real = netD_B.forward(real_ab)
         loss_d_real = criterionGAN(pred_real, True)
 
-        # train with random wrong word
-        from dataset import random_word
-        others = random_word(opt.batchSize)
-        if opt.cuda:
-            others = others.cuda()
-        other_ab = torch.cat((real_a, others), 1)
-        pred_other = netD.forward(other_ab)
-        loss_d_other = criterionGAN(pred_other, False)
-        
         # Combined loss
-        loss_d = (loss_d_fake + loss_d_real + loss_d_other * opt.other_loss_rate)
+        loss_d_b = (loss_d_fake + loss_d_real)
+        loss_d_b.backward()
+        optimizerD_B.step()
 
-        if mode in ("A", "D"):
-            loss_d.backward()
-            optimizerD.step()
+        optimizerD_A.zero_grad()
+        
+        # train with fake
+        fake_ba = torch.cat((real_b, fake_a), 1)
+        pred_fake = netD_A.forward(fake_ba.detach())
+        loss_d_fake = criterionGAN(pred_fake, False)
+
+        # train with real
+        real_ba = torch.cat((real_b, real_a), 1)
+        pred_real = netD_B.forward(real_ba)
+        loss_d_real = criterionGAN(pred_real, True)
+
+        # Combined loss
+        loss_d_a = (loss_d_fake + loss_d_real)
+        loss_d_a.backward()
+        optimizerD_A.step()
 
         ############################
         # (2) Update G network: maximize log(D(x,G(x))) + L1(y,G(x))
         ##########################
-        optimizerG.zero_grad()
+        optimizer_G.zero_grad()
         # First, G(A) should fake the discriminator
-        fake_ab = torch.cat((real_a, fake_b), 1)
-        pred_fake = netD.forward(fake_ab)
-        loss_g_gan = criterionGAN(pred_fake, True)
+        pred_fake = netD_B.forward(fake_ab)
+        loss_g_gan_ab = criterionGAN(pred_fake, True)
+        pred_fake = netD_A.forward(fake_ba)
+        loss_g_gan_ba = criterionGAN(pred_fake, True)
+
+        loss_g_gan = loss_g_gan_ab + loss_g_gan_ba
 
          # Second, G(A) = B
         loss_g_l1 = criterionL1(fake_b, real_b) * opt.lamb
 
         # Third, E(G(A)) = E(A)
         loss_g_density = criterionMSE(fake_b.mean((1,2,3)), real_a.mean((1,2,3)))
+
+        # Identity loss
+        # G_A2B(B) should equal B if real B is fed
+        same_b = netG_A2B(real_b)
+        loss_identity_b = criterion_identity(same_b, real_b)
+        # G_B2A(A) should equal A if real A is fed
+        same_a = netG_B2A(real_a)
+        loss_identity_a = criterion_identity(same_a, real_a)
+        loss_identity = loss_identity_a + loss_identity_b
+
+        # Cycle loss
+        recovered_a = netG_B2A(fake_b)
+        loss_cycle_aba = criterion_cycle(recovered_a, real_a)
+
+        recovered_b = netG_A2B(fake_a)
+        loss_cycle_bab = criterion_cycle(recovered_b, real_b)
         
-        loss_g = loss_g_gan + loss_g_l1
+        loss_cycle = loss_cycle_aba + loss_cycle_bab
+        
+        loss_g = loss_g_gan + loss_g_l1 + loss_identity * 0.5 + loss_cycle * 0.5
 
-        if mode in ("A", "G"):
-            loss_g.backward()
-            optimizerG.step()
-
-        meter_D.update(loss_d.item())
-        meter_G.update(loss_g.item())
+        loss_g.backward()
+        optimizer_G.step()
 
         #print("===> Epoch[{}]({}/{}): Loss_D: {} Loss_G: {}\r".format(
         #    epoch, iteration, len(training_data_loader), meter_D, meter_G), end = '')
         train_logger.log(losses = {
-            'D': loss_d,
-            'D_GAN': loss_d_fake + loss_d_real,
-            'D_other': loss_d_other * opt.other_loss_rate,
+            'D_A': loss_d_a,
+            'D_B': loss_d_b,
             'G': loss_g,
             'G_GAN': loss_g_gan,
             'G_L1': loss_g_l1,
@@ -163,7 +190,7 @@ def test():
                 input = input.cuda()
                 target = target.cuda()
 
-            prediction = netG(input)
+            prediction = netG_A2B(input)
             mse = criterionMSE(prediction, target)
             psnr = 10 * torch.log10(1 / mse)
             avg_psnr += psnr.item()
@@ -178,9 +205,9 @@ def checkpoint(epoch):
     if not os.path.exists(os.path.join("checkpoint", opt.date)):
         os.mkdir(os.path.join("checkpoint", opt.date))
     net_g_model_out_path = "checkpoint/{}/netG_model_epoch_{}.pth".format(opt.date, epoch)
-    net_d_model_out_path = "checkpoint/{}/netD_model_epoch_{}.pth".format(opt.date, epoch)
-    torch.save(netG, net_g_model_out_path)
-    torch.save(netD, net_d_model_out_path)
+    net_d_model_out_path = "checkpoint/{}/netD_B_model_epoch_{}.pth".format(opt.date, epoch)
+    torch.save(netG_A2B, net_g_model_out_path)
+    torch.save(netD_B, net_d_model_out_path)
     print("Checkpoint saved to checkpoint/{}".format(opt.date))
 
 def merge_stats(*stats):
