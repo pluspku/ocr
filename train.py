@@ -55,7 +55,7 @@ import itertools
 optimizer_G = optim.Adam(
     itertools.chain(netG_A2B.parameters(), netG_B2A.parameters()), lr=opt.glr, betas=(opt.beta1, 0.999))
 optimizerD_B = optim.Adam(netD_B.parameters(), lr=opt.dlr, betas=(opt.beta1, 0.999))
-optimizerD_A = optim.Adam(netD_B.parameters(), lr=opt.dlr, betas=(opt.beta1, 0.999))
+optimizerD_A = optim.Adam(netD_A.parameters(), lr=opt.dlr, betas=(opt.beta1, 0.999))
 
 print('---------- Networks initialized -------------')
 #print_network(netG)
