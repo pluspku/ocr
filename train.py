@@ -179,7 +179,7 @@ def train(epoch):
             'G_Density': loss_g_density,
             'G_cycle': loss_cycle,
             'G_identity': loss_identity,
-            }, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b})
+            }, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b, 'fake_a': fake_a})
 
 def test():
     print("\n===> Test")
