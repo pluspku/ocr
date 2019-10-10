@@ -89,43 +89,35 @@ def train(epoch):
         fake_b = netG_A2B(real_a)
         fake_a = netG_B2A(real_b)
 
+        fake_ab = torch.cat((real_a, fake_b), 1)
+        fake_ba = torch.cat((real_b, fake_a), 1)
+        real_ab = torch.cat((real_a, real_b), 1)
+        real_ba = torch.cat((real_b, real_a), 1)
+
         ############################
         # (1) Update D network: maximize log(D(x,y)) + log(1 - D(x,G(x)))
         ###########################
 
-        optimizerD_B.zero_grad()
-        
-        # train with fake
-        fake_ab = torch.cat((real_a, fake_b), 1)
-        pred_fake = netD_B.forward(fake_ab.detach())
-        loss_d_fake = criterionGAN(pred_fake, False)
+        def step_D(netD, optimizerD, fake, real):
+            optimizerD.zero_grad()
+            # train with fake
+            pred_fake = netD.forward(fake.detach())
+            loss_d_fake = criterionGAN(pred_fake, False)
 
-        # train with real
-        real_ab = torch.cat((real_a, real_b), 1)
-        pred_real = netD_B.forward(real_ab)
-        loss_d_real = criterionGAN(pred_real, True)
+            # train with real
+            pred_real = netD.forward(real.detach())
+            loss_d_real = criterionGAN(pred_real, True)
 
-        # Combined loss
-        loss_d_b = (loss_d_fake + loss_d_real)
-        loss_d_b.backward()
-        optimizerD_B.step()
+            # Combined loss
+            loss_d = loss_d_fake + loss_d_real
 
-        optimizerD_A.zero_grad()
-        
-        # train with fake
-        fake_ba = torch.cat((real_b, fake_a), 1)
-        pred_fake = netD_A.forward(fake_ba.detach())
-        loss_d_fake = criterionGAN(pred_fake, False)
+            loss_d.backward()
+            optimizerD.step()
 
-        # train with real
-        real_ba = torch.cat((real_b, real_a), 1)
-        pred_real = netD_B.forward(real_ba)
-        loss_d_real = criterionGAN(pred_real, True)
+            return loss_d
 
-        # Combined loss
-        loss_d_a = (loss_d_fake + loss_d_real)
-        loss_d_a.backward()
-        optimizerD_A.step()
+        loss_d_b = step_D(netD_B, optimizerD_B, fake_ab, real_ab)
+        loss_d_a = step_D(netD_A, optimizerD_A, fake_ba, real_ba)
 
         ############################
         # (2) Update G network: maximize log(D(x,G(x))) + L1(y,G(x))
@@ -140,7 +132,7 @@ def train(epoch):
         loss_g_gan = loss_g_gan_ab + loss_g_gan_ba
 
          # Second, G(A) = B
-        loss_g_l1 = criterionL1(fake_b, real_b) + criterionL1(fake_a, real_a)
+        loss_g_l1 = criterionL1(fake_b, real_b) #+ criterionL1(fake_a, real_a)
 
         # Third, E(G(A)) = E(A)
         loss_g_density = criterionMSE(fake_b.mean((1,2,3)), real_a.mean((1,2,3)))
