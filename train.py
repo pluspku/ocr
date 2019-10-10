@@ -140,7 +140,7 @@ def train(epoch):
         loss_g_gan = loss_g_gan_ab + loss_g_gan_ba
 
          # Second, G(A) = B
-        loss_g_l1 = criterionL1(fake_b, real_b) * opt.lamb
+        loss_g_l1 = criterionL1(fake_b, real_b) + criterionL1(fake_a, real_a)
 
         # Third, E(G(A)) = E(A)
         loss_g_density = criterionMSE(fake_b.mean((1,2,3)), real_a.mean((1,2,3)))
@@ -163,7 +163,7 @@ def train(epoch):
         
         loss_cycle = loss_cycle_aba + loss_cycle_bab
         
-        loss_g = loss_g_gan + loss_g_l1 + loss_identity * 0.5 + loss_cycle * 0.5
+        loss_g = loss_g_gan + loss_g_l1 * opt.lamb + loss_identity * 0.5 + loss_cycle * 0.5
 
         loss_g.backward()
         optimizer_G.step()
