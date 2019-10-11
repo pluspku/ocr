@@ -20,9 +20,10 @@ print(opt)
 '''
 
 from shared import checksum
+import datetime
 
 cuda = True
-date = checksum()
+date = datetime.datetime.now().strftime("%Y%m%d%H%M%S.") + checksum()
 seed = 123
 threads = 4
 
@@ -47,7 +48,7 @@ nEpochs = 20000
 glr = 0.001
 dlr = 0.001
 beta1 = 0.5
-lamb = 1
+lamb = 2
 
 # dynamic
 GDratio = 1.0
