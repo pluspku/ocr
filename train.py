@@ -41,7 +41,7 @@ test_logger = Logger(opt.nEpochs, len(testing_data_loader), opt.date)
 print('===> Building model')
 netG_A2B = define_G(opt.input_nc, opt.output_nc, opt.ngf, norm = opt.batch_mode, netG = opt.netG, use_dropout = False, gpu_ids = [0])
 netD_B = define_D(opt.input_nc + opt.output_nc, opt.ndf, norm = opt.batch_mode, netD = opt.netD, gpu_ids =[0])
-netG_B2A = define_G(opt.input_nc, opt.output_nc, opt.ngf, norm = opt.batch_mode, netG = opt.netG, use_dropout = True, gpu_ids =[0])
+netG_B2A = define_G(opt.input_nc, opt.output_nc, opt.ngf, norm = opt.batch_mode, netG = opt.netG, use_dropout = False, gpu_ids =[0])
 netD_A = define_D(opt.input_nc + opt.output_nc, opt.ndf, norm = opt.batch_mode, netD = opt.netD, gpu_ids =[0])
 
 criterionGAN = GANLoss(opt.GANMode)
@@ -155,7 +155,7 @@ def train(epoch):
         
         loss_cycle = loss_cycle_aba + loss_cycle_bab
         
-        loss_g = loss_g_gan + loss_g_l1 * opt.lamb + loss_identity * 0.5 + loss_cycle * 0.5
+        loss_g = loss_g_gan + loss_g_l1 * opt.lamb + loss_identity * 0.5 + loss_cycle * 10
 
         loss_g.backward()
         optimizer_G.step()
