@@ -32,7 +32,10 @@ input_nc = 1
 output_nc = 1
 
 # structure params
-batch_mode = 'batch'
+batch_mode = 'instance'
+netG = 'unet_128'
+netD = 'basic'
+GANMode = 'lsgan'
 G_blocks = 9
 D_layers = 5
 ngf = 64
@@ -42,7 +45,7 @@ ndf = 64
 other_loss_rate = 0.5
 
 # train params
-batchSize = 2
+batchSize = 8
 testBatchSize = 1
 nEpochs = 20000
 glr = 0.001

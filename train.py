@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from networks import define_G, define_D, GANLoss, print_network
+from networks import define_G, define_D, GANLoss
 from data import get_training_set, get_test_set
 from shared import Meter, checksum, train_mode
 import torch.backends.cudnn as cudnn
@@ -39,12 +39,12 @@ train_logger = Logger(opt.nEpochs, len(training_data_loader), opt.date)
 test_logger = Logger(opt.nEpochs, len(testing_data_loader), opt.date)
 
 print('===> Building model')
-netG_A2B = define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.batch_mode, False, [0])
-netD_B = define_D(opt.input_nc + opt.output_nc, opt.ndf, opt.batch_mode, False, [0])
-netG_B2A = define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.batch_mode, False, [0])
-netD_A = define_D(opt.input_nc + opt.output_nc, opt.ndf, opt.batch_mode, False, [0])
+netG_A2B = define_G(opt.input_nc, opt.output_nc, opt.ngf, norm = opt.batch_mode, netG = opt.netG, use_dropout = False, gpu_ids = [0])
+netD_B = define_D(opt.input_nc + opt.output_nc, opt.ndf, norm = opt.batch_mode, netD = opt.netD, gpu_ids =[0])
+netG_B2A = define_G(opt.input_nc, opt.output_nc, opt.ngf, norm = opt.batch_mode, netG = opt.netG, use_dropout = True, gpu_ids =[0])
+netD_A = define_D(opt.input_nc + opt.output_nc, opt.ndf, norm = opt.batch_mode, netD = opt.netD, gpu_ids =[0])
 
-criterionGAN = GANLoss()
+criterionGAN = GANLoss(opt.GANMode)
 criterionL1 = nn.L1Loss()
 criterionMSE = nn.MSELoss()
 criterion_identity = nn.L1Loss()
@@ -168,7 +168,6 @@ def train(epoch):
             'G': loss_g,
             'G_GAN': loss_g_gan,
             'G_L1': loss_g_l1,
-            'G_Density': loss_g_density,
             'G_cycle': loss_cycle,
             'G_identity': loss_identity,
             }, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b, 'fake_a': fake_a})

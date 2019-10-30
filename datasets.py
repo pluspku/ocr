@@ -9,10 +9,10 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 
 import torchvision.transforms as transforms
 
-MAX = 6000
+MAX = 20000
 #MAX = 999999
 
-W=H=80
+W=H=128
 
 def center(img):
     x = np.array(img)
