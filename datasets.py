@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 
 import torchvision.transforms as transforms
 
-MAX = 20000
+MAX = 6000
 #MAX = 999999
 
 W=H=128
@@ -33,30 +33,27 @@ class ImageDataset(Dataset):
         self.transform = transforms.Compose(transforms_)
         self.unaligned = unaligned
         self.limit = limit
+        self.root = root
+        self.mode = mode
 
         if os.path.exists(os.path.join(root, mode, "mapping.csv")):
             self.mapping = pd.read_csv(os.path.join(root, mode, "mapping.csv"))
-            self.files_A = self.mapping.src.apply(lambda x: os.path.join(root, mode, 'A', '%s.tif' % x)).tolist()
-            self.files_B = self.mapping.tgt.apply(lambda x: os.path.join(root, mode, 'B', '%s.tif' % x)).tolist()
         else:
             raise Exception("%s does not exists" % os.path.join(root, mode, "mapping.csv"))
+        self.reset()
 
     def reset(self):
-        self.subst = random.sample(range(len(self.mapping)), self.limit)
+        self.subst = self.mapping.set_index('word').sample(n = self.limit, weights=np.sqrt(self.mapping.groupby("word").size())).reset_index()
 
     def __getitem__(self, index):
-        if self.unaligned:
-            item_A = self.transform(get_image(self.files_A[random.randint(0, len(self.files_A) - 1)]))
-            item_B = self.transform(get_image(self.files_B[random.randint(0, len(self.files_B) - 1)]))
-        else:
-            j = self.subst[index]
-            item_A = self.transform(get_image(self.files_A[j]))            
-            item_B = self.transform(get_image(self.files_B[j]))
+        row = self.subst.iloc[index]
+        item_A = self.transform(get_image(os.path.join(self.root, self.mode, 'A', '%s.tif' % row['src'])))
+        item_B = self.transform(get_image(os.path.join(self.root, self.mode, 'B', '%s.tif' % row['tgt'])))
 
         return (item_A, item_B)
         #return {'A': item_A, 'B': item_B, 'index': index}
 
     def __len__(self):
-        return min(self.limit, max(len(self.files_A), len(self.files_B)))
+        return len(self.subst)
 
 
