@@ -1,8 +1,10 @@
 from torchvision import transforms
-from datasets import ImageDataset
+from datasets import ImageDataset, W, H
 import os
 
 transforms_ = [
+        transforms.Pad(10),
+        transforms.RandomResizedCrop((W, H), scale = (0.9, 1.1), ratio = (0.9, 1.1)),
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
         ]
