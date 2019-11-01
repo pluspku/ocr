@@ -213,7 +213,11 @@ def merge_stats(*stats):
 
 if __name__ == '__main__':
     for epoch in range(1, opt.nEpochs + 1):
-        train(epoch)
-        test()
-        if epoch % 20 == 0 or (epoch < 30 and epoch % 2 == 0):
+        try:
+            train(epoch)
+            test()
+            if epoch % 20 == 0 or (epoch < 30 and epoch % 2 == 0):
+                checkpoint(epoch)
+        except KeyboardInterrupt:
             checkpoint(epoch)
+            break
