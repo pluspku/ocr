@@ -13,7 +13,7 @@ from data import get_training_set, get_test_set
 from shared import Meter, checksum, train_mode
 import torch.backends.cudnn as cudnn
 import datetime
-
+import pandas as pd
 from logger import Logger
 
 # Training settings
@@ -84,6 +84,7 @@ def train(epoch):
     for iteration, batch in enumerate(training_data_loader, 1):
         # forward
         real_a_cpu, real_b_cpu = batch[0], batch[1]
+        indexes = batch[2]
         real_a.resize_(real_a_cpu.size()).copy_(real_a_cpu)
         real_b.resize_(real_b_cpu.size()).copy_(real_b_cpu)
         fake_b = netG_A2B(real_a)
@@ -160,6 +161,10 @@ def train(epoch):
         loss_g.backward()
         optimizer_G.step()
 
+        mse = torch.nn.functional.mse_loss(fake_b, real_b, reduction = 'none').mean([1,2,3])
+        train_set.update_weights(pd.Series(mse.data.cpu().numpy(), index = indexes.numpy()))
+
+
         #print("===> Epoch[{}]({}/{}): Loss_D: {} Loss_G: {}\r".format(
         #    epoch, iteration, len(training_data_loader), meter_D, meter_G), end = '')
         train_logger.log(losses = {
@@ -170,6 +175,7 @@ def train(epoch):
             'G_L1': loss_g_l1,
             'G_cycle': loss_cycle,
             'G_identity': loss_identity,
+            'wts': torch.FloatTensor([train_set.weights.mean()]),
             }, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b, 'fake_a': fake_a})
 
 def test():
