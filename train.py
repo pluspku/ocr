@@ -205,8 +205,10 @@ def checkpoint(epoch):
         os.mkdir(os.path.join("checkpoint", opt.date))
     net_g_model_out_path = "checkpoint/{}/netG_model_epoch_{}.pth".format(opt.date, epoch)
     net_d_model_out_path = "checkpoint/{}/netD_B_model_epoch_{}.pth".format(opt.date, epoch)
+    weights_out_path = "checkpoint/{}/weights_{}.path".format(opt.date, epoch)
     torch.save(netG_A2B, net_g_model_out_path)
     torch.save(netD_B, net_d_model_out_path)
+    train_set.weights.to_csv(weights_out_path)
     print("Checkpoint saved to checkpoint/{}".format(opt.date))
 
 def merge_stats(*stats):

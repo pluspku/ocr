@@ -42,6 +42,7 @@ class ImageDataset(Dataset):
         else:
             raise Exception("%s does not exists" % os.path.join(root, mode, "mapping.csv"))
         self.weights = np.sqrt(self.mapping.groupby("word").size())
+        self.weights = self.weights / self.weights.mean()
         self.reset()
 
     def reset(self):
@@ -60,8 +61,10 @@ class ImageDataset(Dataset):
 
     def update_weights(self, scores):
         scores = scores.sort_values()
-        self.weights.loc[self.mapping.loc[scores.head(len(scores)//4).index].word] *= 0.99
-        self.weights.loc[self.mapping.loc[scores.tail(len(scores)//4).index].word] *= 1.01
+        pidx = self.mapping.loc[scores.head(len(scores)//4).index].word
+        self.weights.loc[pidx] = np.maximum(self.weights.loc[pidx] * 0.99, 0.25)
+        pidx = self.mapping.loc[scores.tail(len(scores)//4).index].word
+        self.weights.loc[pidx] = np.minimum(self.weights.loc[pidx] * 1.01, 4)
 
 
 
