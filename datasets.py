@@ -52,7 +52,7 @@ def get_image(path):
 
 class ImageDataset(Dataset):
     def __init__(self, root, unaligned=False, mode='train', limit = MAX):
-        self.random_transform = ConsistentRandomResizedCrop(size = (W, H), scale = (0.9, 1.1), ratio = (0.9, 1.1))
+        self.random_transform = ConsistentRandomResizedCrop(size = (W, H), scale = (0.8, 1.2), ratio = (0.8, 1.2))
         transforms_ = [
                 transforms.Pad(10),
                 self.random_transform,
