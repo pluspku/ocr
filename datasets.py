@@ -8,6 +8,27 @@ from torch.utils.data import Dataset
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 
 import torchvision.transforms as transforms
+class ConsistentRandomResizedCrop(transforms.RandomResizedCrop):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cache = None
+
+    def __call__(self, img):
+        if self.cache is not None:
+            i, j, h, w = self.cache
+        else:
+            i, j, h, w = self.get_params(img, self.scale, self.ratio)
+            self.cache = i, j, h, w
+        return transforms.functional.resized_crop(img, i, j, h, w, self.size, self.interpolation)
+
+    def __enter__(self):
+        self.cache = None
+        return self
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        self.cache = None
+
+
 
 MAX = 6000
 #MAX = 999999
@@ -28,8 +49,17 @@ def get_image(path):
 
 
 
+
 class ImageDataset(Dataset):
-    def __init__(self, root, transforms_=None, unaligned=False, mode='train', limit = MAX):
+    def __init__(self, root, unaligned=False, mode='train', limit = MAX):
+        self.random_transform = ConsistentRandomResizedCrop(size = (W, H), scale = (0.9, 1.1), ratio = (0.9, 1.1))
+        transforms_ = [
+                transforms.Pad(10),
+                self.random_transform,
+                transforms.ToTensor(),
+                transforms.Normalize((0.5,), (0.5,))
+                ]
+
         self.transform = transforms.Compose(transforms_)
         self.unaligned = unaligned
         self.limit = limit
@@ -50,8 +80,9 @@ class ImageDataset(Dataset):
 
     def __getitem__(self, index):
         row = self.subst.iloc[index]
-        item_A = self.transform(get_image(os.path.join(self.root, self.mode, 'A', '%s.tif' % row['src'])))
-        item_B = self.transform(get_image(os.path.join(self.root, self.mode, 'B', '%s.tif' % row['tgt'])))
+        with self.random_transform:
+            item_A = self.transform(get_image(os.path.join(self.root, self.mode, 'A', '%s.tif' % row['src'])))
+            item_B = self.transform(get_image(os.path.join(self.root, self.mode, 'B', '%s.tif' % row['tgt'])))
 
         return (item_A, item_B, row.ordinal)
         #return {'A': item_A, 'B': item_B, 'index': index}
