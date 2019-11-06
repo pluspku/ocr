@@ -90,12 +90,12 @@ class ImageDataset(Dataset):
     def __len__(self):
         return len(self.subst)
 
-    def update_weights(self, scores):
-        scores = scores.sort_values()
-        pidx = self.mapping.loc[scores.head(len(scores)//4).index].word
-        self.weights.loc[pidx] = np.maximum(self.weights.loc[pidx] * 0.999, 0.25)
-        pidx = self.mapping.loc[scores.tail(len(scores)//4).index].word
-        self.weights.loc[pidx] = np.minimum(self.weights.loc[pidx] * 1.001, 4)
-
-
+    def update_weights(self, mse):
+        scores = 10 * np.log10(1/mse)
+        if len(scores[scores > 15]) > 0:
+            pidx = self.mapping.loc[scores[scores > 15].index].word
+            self.weights.loc[pidx] = np.maximum(self.weights.loc[pidx] * 0.999, 0.1)
+        if len(scores[scores < 3]) > 0:
+            pidx = self.mapping.loc[scores[scores <3].index].word
+            self.weights.loc[pidx] = np.minimum(self.weights.loc[pidx] * 1.001, 10)
 
