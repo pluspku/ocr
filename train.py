@@ -156,7 +156,9 @@ def train(epoch):
         
         loss_cycle = loss_cycle_aba + loss_cycle_bab
         
-        loss_g = loss_g_gan + loss_g_l1 * opt.lamb + loss_identity * 0.5 + loss_cycle * 10
+        loss_g = loss_g_gan + loss_g_l1 * opt.lamb + loss_identity * 1 + loss_cycle * 1
+
+        loss_g *= 10
 
         loss_g.backward()
         optimizer_G.step()
