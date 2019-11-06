@@ -178,7 +178,7 @@ def train(epoch):
             'G_cycle': loss_cycle,
             'G_identity': loss_identity,
             'wts': torch.FloatTensor([train_set.weights.mean()]),
-            }, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b, 'fake_a': fake_a})
+            }, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b, 'fake_a': fake_a, 'rec_a': recovered_a, 'rec_b': recovered_b, 'id_a': same_a, 'id_b': same_b})
 
 def test():
     print("\n===> Test")
