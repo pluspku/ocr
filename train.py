@@ -52,10 +52,8 @@ criterion_cycle = nn.L1Loss()
 
 # setup optimizer
 import itertools
-optimizer_G = optim.Adam(
-    itertools.chain(netG_A2B.parameters(), netG_B2A.parameters()), lr=opt.glr, betas=(opt.beta1, 0.999))
-optimizerD_B = optim.Adam(netD_B.parameters(), lr=opt.dlr, betas=(opt.beta1, 0.999))
-optimizerD_A = optim.Adam(netD_A.parameters(), lr=opt.dlr, betas=(opt.beta1, 0.999))
+optimizer_G = optim.Adam(itertools.chain(netG_A2B.parameters(), netG_B2A.parameters()), lr=opt.glr, betas=(opt.beta1, 0.999))
+optimizer_D = optim.Adam(itertools.chain(netD_A.parameters(), netD_B.parameters()), lr=opt.dlr, betas=(opt.beta1, 0.999))
 
 print('---------- Networks initialized -------------')
 #print_network(netG)
@@ -99,8 +97,7 @@ def train(epoch):
         # (1) Update D network: maximize log(D(x,y)) + log(1 - D(x,G(x)))
         ###########################
 
-        def step_D(netD, optimizerD, fake, real):
-            optimizerD.zero_grad()
+        def step_D(netD, fake, real):
             # train with fake
             pred_fake = netD.forward(fake.detach())
             loss_d_fake = criterionGAN(pred_fake, False)
@@ -110,15 +107,16 @@ def train(epoch):
             loss_d_real = criterionGAN(pred_real, True)
 
             # Combined loss
-            loss_d = loss_d_fake + loss_d_real
+            loss = loss_d_fake + loss_d_real
+            return loss
 
-            loss_d.backward()
-            optimizerD.step()
+        optimizer_D.zero_grad()
+        loss_d_b = step_D(netD_B, fake_ab, real_ab)
+        loss_d_a = step_D(netD_A, fake_ba, real_ba)
+        loss_d = loss_d_b + loss_d_a
+        loss_d.backward()
+        optimizer_D.step()
 
-            return loss_d
-
-        loss_d_b = step_D(netD_B, optimizerD_B, fake_ab, real_ab)
-        loss_d_a = step_D(netD_A, optimizerD_A, fake_ba, real_ba)
 
         ############################
         # (2) Update G network: maximize log(D(x,G(x))) + L1(y,G(x))
