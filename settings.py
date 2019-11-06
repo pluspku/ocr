@@ -37,7 +37,7 @@ netG = 'unet_128'
 netD = 'basic'
 GANMode = 'lsgan'
 G_blocks = 9
-D_layers = 5
+D_layers = 6
 ngf = 64
 ndf = 64
 
@@ -45,13 +45,13 @@ ndf = 64
 other_loss_rate = 0.5
 
 # train params
-batchSize = 16
+batchSize = 4
 testBatchSize = 1
 nEpochs = 20000
-glr = 0.001
-dlr = 0.001
+glr = 0.0005
+dlr = 0.0005
 beta1 = 0.5
-lamb = 5
+lamb = 10
 
 # dynamic
 GDratio = 1.0

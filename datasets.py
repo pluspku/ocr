@@ -93,9 +93,9 @@ class ImageDataset(Dataset):
     def update_weights(self, scores):
         scores = scores.sort_values()
         pidx = self.mapping.loc[scores.head(len(scores)//4).index].word
-        self.weights.loc[pidx] = np.maximum(self.weights.loc[pidx] * 0.99, 0.25)
+        self.weights.loc[pidx] = np.maximum(self.weights.loc[pidx] * 0.999, 0.25)
         pidx = self.mapping.loc[scores.tail(len(scores)//4).index].word
-        self.weights.loc[pidx] = np.minimum(self.weights.loc[pidx] * 1.01, 4)
+        self.weights.loc[pidx] = np.minimum(self.weights.loc[pidx] * 1.001, 4)
 
 
 
