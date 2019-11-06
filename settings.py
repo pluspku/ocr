@@ -45,7 +45,7 @@ ndf = 64
 other_loss_rate = 0.5
 
 # train params
-batchSize = 4
+batchSize = 16
 testBatchSize = 1
 nEpochs = 20000
 glr = 0.001
