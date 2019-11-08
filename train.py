@@ -201,11 +201,17 @@ def checkpoint(epoch):
         os.mkdir("checkpoint")
     if not os.path.exists(os.path.join("checkpoint", opt.date)):
         os.mkdir(os.path.join("checkpoint", opt.date))
-    net_g_model_out_path = "checkpoint/{}/netG_model_epoch_{}.pth".format(opt.date, epoch)
-    net_d_model_out_path = "checkpoint/{}/netD_B_model_epoch_{}.pth".format(opt.date, epoch)
-    weights_out_path = "checkpoint/{}/weights_{}.path".format(opt.date, epoch)
-    torch.save(netG_A2B, net_g_model_out_path)
-    torch.save(netD_B, net_d_model_out_path)
+
+    def save(name):
+        path = "checkpoint/{}/{}_epoch_{}.pth".format(opt.date, name, epoch)
+        model = globals()[name]
+        torch.save(model, path)
+
+    save("netG_A2B")
+    save("netG_B2A")
+    save("netD_A")
+    save("netD_B")
+    weights_out_path = "checkpoint/{}/weights_{}.csv".format(opt.date, epoch)
     train_set.weights.to_csv(weights_out_path)
     print("Checkpoint saved to checkpoint/{}".format(opt.date))
 
