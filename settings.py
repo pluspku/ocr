@@ -51,7 +51,7 @@ nEpochs = 20000
 glr = 0.0005
 dlr = 0.0005
 beta1 = 0.5
-lamb = 10
+lamb = 5
 
 # dynamic
 GDratio = 1.0
