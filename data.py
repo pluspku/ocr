@@ -1,7 +1,7 @@
 from datasets import ImageDataset
 import os
 
-root = "datasets/rlws"
+root = "datasets/hlm2"
 
 def get_training_set():
     return ImageDataset(root, unaligned = False, mode = 'train', limit = 6000)
