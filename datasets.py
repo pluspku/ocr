@@ -28,8 +28,6 @@ class ConsistentRandomResizedCrop(transforms.RandomResizedCrop):
     def __exit__(self, exception_type, exception_value, traceback):
         self.cache = None
 
-
-
 MAX = 6000
 #MAX = 999999
 
@@ -46,9 +44,6 @@ def get_image(path):
     E = img.size[1] + margin
     img3 = ImageOps.expand(img, border = E).crop((ax - E // 2 + E, ay - E //2 + E, ax + E // 2 + E, ay + E //2 + E)).resize((W, H), Image.ANTIALIAS)
     return img3
-
-
-
 
 class ImageDataset(Dataset):
     def __init__(self, root, unaligned=False, mode='train', limit = MAX):

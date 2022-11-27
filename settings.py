@@ -21,6 +21,7 @@ print(opt)
 
 from shared import checksum
 import datetime
+from dataclasses import dataclass
 
 cuda = True
 date = datetime.datetime.now().strftime("%Y%m%d%H%M%S.") + checksum()
@@ -32,10 +33,10 @@ input_nc = 1
 output_nc = 1
 
 # structure params
-batch_mode = 'instance'
-netG = 'unet_128'
+batch_mode = 'batch'
+netG = 'resnet_9blocks'
 netD = 'basic'
-GANMode = 'lsgan'
+GANMode = 'vanilla'
 G_blocks = 9
 D_layers = 6
 ngf = 64
@@ -45,13 +46,21 @@ ndf = 64
 other_loss_rate = 0.5
 
 # train params
-batchSize = 16
-testBatchSize = 16
+batchSize = 8
+testBatchSize = 8
 nEpochs = 20000
 glr = 0.0005
-dlr = 0.0005
+dlr = 0.0001
+
 beta1 = 0.5
-lamb = 5
+
+loss_weights = {
+    "LGAN": 2.0,
+    "L1": 5.0,
+    "LId": 1.0,
+    "Lcycle": 1.0,
+    "Ldensity": 0.5,
+}
 
 # dynamic
 GDratio = 1.0

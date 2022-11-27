@@ -131,7 +131,7 @@ def train(epoch):
         loss_g_gan = loss_g_gan_ab + loss_g_gan_ba
 
          # Second, G(A) = B
-        loss_g_l1 = criterionL1(fake_b, real_b) #+ criterionL1(fake_a, real_a)
+        loss_g_l1 = criterionL1(fake_b, real_b) + criterionL1(fake_a, real_a)
 
         # Third, E(G(A)) = E(A)
         loss_g_density = criterionMSE(fake_b.mean((1,2,3)), real_a.mean((1,2,3)))
@@ -151,10 +151,14 @@ def train(epoch):
 
         recovered_b = netG_A2B(fake_a)
         loss_cycle_bab = criterion_cycle(recovered_b, real_b)
-        
+
         loss_cycle = loss_cycle_aba + loss_cycle_bab
-        
-        loss_g = loss_g_gan + loss_g_l1 * opt.lamb + loss_identity * 0.1 + loss_cycle * 10
+
+        loss_g = loss_g_gan * opt.loss_weights["LGAN"]\
+            + loss_g_l1 * opt.loss_weights["L1"] \
+            + loss_identity * opt.loss_weights["LId"] \
+            + loss_cycle * opt.loss_weights["Lcycle"] \
+            + loss_g_density * opt.loss_weights["Ldensity"]
 
         loss_g.backward()
         optimizer_G.step()
@@ -173,6 +177,7 @@ def train(epoch):
             'G_L1': loss_g_l1,
             'G_cycle': loss_cycle,
             'G_identity': loss_identity,
+            'G_density': loss_g_density,
             'wts': torch.FloatTensor([train_set.weights.mean()]),
             }, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b, 'fake_a': fake_a, 'rec_a': recovered_a, 'rec_b': recovered_b, 'id_a': same_a, 'id_b': same_b})
 
