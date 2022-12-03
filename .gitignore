@@ -1,2 +1,4 @@
 checkpoint
 datasets
+*.csv
+*.png

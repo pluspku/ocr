@@ -14,7 +14,7 @@ H = 80
 font_size = 64
 font_color = (255,)
 margin = 10
-unicode_font = ImageFont.truetype("/usr/share/fonts/opentype/noto/NotoSerifCJK.ttc", font_size)
+unicode_font = ImageFont.truetype("/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc", font_size)
 IMAGE_ROOT = '/home/wshi/git/misc/ocr/label/data/02111843.cn_tif'
 
 def get_ideal_image(word):
@@ -61,7 +61,7 @@ class WordDataset(data.Dataset):
     def __len__(self):
         return len(self.dictionary)
 
-small_font = ImageFont.truetype("/usr/share/fonts/opentype/noto/NotoSerifCJK.ttc", 24)
+small_font = ImageFont.truetype("/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc", 24)
 W1 = 32
 H1 = 32
 
