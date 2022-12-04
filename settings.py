@@ -33,12 +33,15 @@ output_nc = 1
 # structure params
 batch_mode = 'batch'
 G_blocks = 9
-D_layers = 5
+D_layers = 4
 ngf = 64
 ndf = 64
 
 # loss params
 other_loss_rate = 0.5
+GAN_mode = 'lsgan'
+D_mode = 'n_layers'
+G_mode = 'resnet_6blocks'
 
 # train params
 batchSize = 2

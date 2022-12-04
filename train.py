@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from networks import define_G, define_D, GANLoss, print_network
+from networks import define_G, define_D, GANLoss
 from data import get_training_set, get_test_set
 from shared import Meter, checksum, train_mode
 import torch.backends.cudnn as cudnn
@@ -39,16 +39,16 @@ train_logger = Logger(opt.nEpochs, len(training_data_loader), opt.date)
 test_logger = Logger(opt.nEpochs, len(testing_data_loader), opt.date)
 
 print('===> Building model')
-netG = define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.batch_mode, False, [0])
-netD = define_D(opt.input_nc + opt.output_nc, opt.ndf, opt.batch_mode, False, [0])
+netG = define_G(opt.input_nc, opt.output_nc, opt.ngf, norm=opt.batch_mode, netG=opt.G_mode, use_dropout=True, gpu_ids=[0])
+netD = define_D(opt.input_nc + opt.output_nc, opt.ndf, norm=opt.batch_mode, n_layers_D=opt.D_layers, netD=opt.D_mode, gpu_ids=[0])
 
-criterionGAN = GANLoss()
+criterionGAN = GANLoss(opt.GAN_mode)
 criterionL1 = nn.L1Loss()
 criterionMSE = nn.MSELoss()
 
 # setup optimizer
-optimizerG = optim.Adam(netG.parameters(), lr=opt.glr, betas=(opt.beta1, 0.999))
-optimizerD = optim.Adam(netD.parameters(), lr=opt.dlr, betas=(opt.beta1, 0.999))
+optimizerG = optim.AdamW(netG.parameters(), lr=opt.glr, betas=(opt.beta1, 0.999))
+optimizerD = optim.AdamW(netD.parameters(), lr=opt.dlr, betas=(opt.beta1, 0.999))
 
 print('---------- Networks initialized -------------')
 #print_network(netG)
@@ -89,7 +89,7 @@ def train(epoch):
         ###########################
 
         optimizerD.zero_grad()
-        
+
         # train with fake
         fake_ab = torch.cat((real_a, fake_b), 1)
         pred_fake = netD.forward(fake_ab.detach())
@@ -108,7 +108,7 @@ def train(epoch):
         other_ab = torch.cat((real_a, others), 1)
         pred_other = netD.forward(other_ab)
         loss_d_other = criterionGAN(pred_other, False)
-        
+
         # Combined loss
         loss_d = (loss_d_fake + loss_d_real + loss_d_other * opt.other_loss_rate)
 
@@ -127,7 +127,7 @@ def train(epoch):
 
          # Second, G(A) = B
         loss_g_l1 = criterionL1(fake_b, real_b) * opt.lamb
-        
+
         loss_g = loss_g_gan + loss_g_l1
 
         if mode in ("A", "G"):
