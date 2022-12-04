@@ -18,11 +18,11 @@ parser.add_argument('--lamb', type=int, default=10, help='weight on L1 term in o
 opt = parser.parse_args()
 print(opt)
 '''
-
+import datetime
 from shared import checksum
 
 cuda = True
-date = checksum()
+date = datetime.datetime.now().strftime("%Y%m%d%H%M%S.") + checksum()
 seed = 123
 threads = 4
 
