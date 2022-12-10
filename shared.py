@@ -1,7 +1,7 @@
 import numpy as np
 from collections import deque
 
-allow_dirty = False
+allow_dirty = True
 
 class Meter:
     def __init__(self, ma = 100):
@@ -22,7 +22,10 @@ def checksum():
     repo = git.Repo()
     if not allow_dirty:
         assert not repo.is_dirty()
-    return repo.head.commit.hexsha[:7]
+    ret = repo.head.commit.hexsha[:7]
+    if repo.is_dirty():
+        ret += ".dev"
+    return ret
 
 control_key = 'train_mode'
 import redis
