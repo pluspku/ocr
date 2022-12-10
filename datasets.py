@@ -40,6 +40,7 @@ class ImageDataset(Dataset):
             self.files_B = self.mapping.tgt.apply(lambda x: os.path.join(root, mode, 'B', '%s.tif' % x)).tolist()
         else:
             raise Exception("%s does not exists" % os.path.join(root, mode, "mapping.csv"))
+        self.reset()
 
     def reset(self):
         self.subst = random.sample(range(len(self.mapping)), self.limit)

@@ -16,8 +16,20 @@ class Meter:
     def val(self):
         return np.nanmean(self.data)
 
+def type_of_script():
+    try:
+        from IPython import get_ipython
+        ipy_str = str(type(get_ipython()))
+        if 'zmqshell' in ipy_str:
+            return 'jupyter'
+        if 'terminal' in ipy_str:
+            return 'ipython'
+    except:
+        return 'terminal'
 
 def checksum():
+    if type_of_script() == 'jupyter':
+        return 'jupyter'
     import git
     repo = git.Repo()
     if not allow_dirty:

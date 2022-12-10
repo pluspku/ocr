@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 from networks import define_G, define_D, GANLoss, print_network
 from data import get_training_set, get_test_set
 from shared import Meter, checksum, train_mode
+import shared
 import torch.backends.cudnn as cudnn
 import datetime
 
@@ -89,7 +90,7 @@ def train(epoch):
         ###########################
 
         optimizerD.zero_grad()
-        
+
         # train with fake
         fake_ab = torch.cat((real_a, fake_b), 1)
         pred_fake = netD.forward(fake_ab.detach())
@@ -108,7 +109,7 @@ def train(epoch):
         other_ab = torch.cat((real_a, others), 1)
         pred_other = netD.forward(other_ab)
         loss_d_other = criterionGAN(pred_other, False)
-        
+
         # Combined loss
         loss_d = (loss_d_fake + loss_d_real + loss_d_other * opt.other_loss_rate)
 
@@ -127,7 +128,7 @@ def train(epoch):
 
          # Second, G(A) = B
         loss_g_l1 = criterionL1(fake_b, real_b) * opt.lamb
-        
+
         loss_g = loss_g_gan + loss_g_l1
 
         if mode in ("A", "G"):
@@ -181,6 +182,12 @@ def merge_stats(*stats):
     return ret
 
 if __name__ == '__main__':
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument("--dev", action="store_true")
+    args = parser.parse_args()
+    if args.dev:
+        shared.allow_dirty = True
     for epoch in range(1, opt.nEpochs + 1):
         train(epoch)
         test()
