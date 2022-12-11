@@ -140,7 +140,7 @@ def train(epoch):
 
         #print("===> Epoch[{}]({}/{}): Loss_D: {} Loss_G: {}\r".format(
         #    epoch, iteration, len(training_data_loader), meter_D, meter_G), end = '')
-        train_logger.log(losses = {'D': loss_d, 'G': loss_g}, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b})
+        train_logger.log(losses = {'D': loss_d, 'G': loss_g, 'G_L1': loss_g_l1, 'G_GAN': loss_g_gan}, images = {'real_a': real_a, 'fake_b': fake_b, 'real_b': real_b})
 
 def test():
     print("\n===> Test")

@@ -43,7 +43,11 @@ class ImageDataset(Dataset):
         self.reset()
 
     def reset(self):
-        self.subst = random.sample(range(len(self.mapping)), self.limit)
+        series = pd.Series(np.arange(len(self.mapping)))
+        if 'weight' in self.mapping.columns:
+            self.subst = series.sample(self.limit, weights=self.mapping.weight).tolist()
+        else:
+            self.subst = series.sample(self.limit).tolist()
 
     def __getitem__(self, index):
         if self.unaligned:
@@ -51,7 +55,7 @@ class ImageDataset(Dataset):
             item_B = self.transform(get_image(self.files_B[random.randint(0, len(self.files_B) - 1)]))
         else:
             j = self.subst[index]
-            item_A = self.transform(get_image(self.files_A[j]))            
+            item_A = self.transform(get_image(self.files_A[j]))
             item_B = self.transform(get_image(self.files_B[j]))
 
         return (item_A, item_B)
